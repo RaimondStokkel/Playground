@@ -21,8 +21,20 @@ jobs:
           cache: 'npm'
       - name: Install
         run: npm ci || npm install
+      - name: Lint
+        run: npm run -s lint
+      - name: Test
+        run: npm test --silent
       - name: Build
         run: npm run build
+        env:
+          VITE_COPILOT_BOT_ID: ${{ vars.VITE_COPILOT_BOT_ID || secrets.VITE_COPILOT_BOT_ID }}
+          VITE_COPILOT_TENANT_ID: ${{ vars.VITE_COPILOT_TENANT_ID || secrets.VITE_COPILOT_TENANT_ID }}
+          VITE_COPILOT_DIRECT_URL: ${{ vars.VITE_COPILOT_DIRECT_URL || secrets.VITE_COPILOT_DIRECT_URL }}
+          VITE_COPILOT_ENV_ID: ${{ vars.VITE_COPILOT_ENV_ID || secrets.VITE_COPILOT_ENV_ID }}
+          VITE_COPILOT_SCHEMA: ${{ vars.VITE_COPILOT_SCHEMA || secrets.VITE_COPILOT_SCHEMA }}
+          VITE_ENTRA_CLIENT_ID: ${{ vars.VITE_ENTRA_CLIENT_ID || secrets.VITE_ENTRA_CLIENT_ID }}
+          VITE_ENTRA_AUTHORITY: ${{ vars.VITE_ENTRA_AUTHORITY || secrets.VITE_ENTRA_AUTHORITY }}
       - name: Deploy to Azure Static Web Apps
         uses: Azure/static-web-apps-deploy@v1
         with:
