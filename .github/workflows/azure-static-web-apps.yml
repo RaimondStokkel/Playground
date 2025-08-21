@@ -8,6 +8,41 @@ on:
     branches: [ main ]
 
 jobs:
+  lighthouse:
+    if: github.event.action != 'closed'
+    runs-on: ubuntu-latest
+    name: Lighthouse (A11y/Best Practices)
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - name: Install
+        run: npm ci || npm install
+      - name: Build
+        run: npm run -s build
+        env:
+          VITE_COPILOT_BOT_ID: ${{ secrets.VITE_COPILOT_BOT_ID }}
+          VITE_COPILOT_TENANT_ID: ${{ secrets.VITE_COPILOT_TENANT_ID }}
+          VITE_COPILOT_DIRECT_URL: ${{ secrets.VITE_COPILOT_DIRECT_URL }}
+          VITE_COPILOT_ENV_ID: ${{ secrets.VITE_COPILOT_ENV_ID }}
+          VITE_COPILOT_SCHEMA: ${{ secrets.VITE_COPILOT_SCHEMA }}
+          VITE_ENTRA_CLIENT_ID: ${{ secrets.VITE_ENTRA_CLIENT_ID }}
+          VITE_ENTRA_AUTHORITY: ${{ secrets.VITE_ENTRA_AUTHORITY }}
+      - name: Serve dist (Preview)
+        run: npx -y http-server ./dist -p 8080 &
+      - name: Wait for preview
+        run: |
+          for i in {1..10}; do
+            if curl -sSf http://localhost:8080 >/dev/null; then exit 0; fi
+            sleep 2;
+          done
+          echo "Preview did not start in time" && exit 1
+      - name: Lighthouse CI
+        run: npx -y @lhci/cli@0.13.x assert --config=./lighthouserc.json
+
   build_and_deploy_job:
     if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'closed')
     runs-on: ubuntu-latest
@@ -28,13 +63,13 @@ jobs:
       - name: Build
         run: npm run build
         env:
-          VITE_COPILOT_BOT_ID: ${{ vars.VITE_COPILOT_BOT_ID || secrets.VITE_COPILOT_BOT_ID }}
-          VITE_COPILOT_TENANT_ID: ${{ vars.VITE_COPILOT_TENANT_ID || secrets.VITE_COPILOT_TENANT_ID }}
-          VITE_COPILOT_DIRECT_URL: ${{ vars.VITE_COPILOT_DIRECT_URL || secrets.VITE_COPILOT_DIRECT_URL }}
-          VITE_COPILOT_ENV_ID: ${{ vars.VITE_COPILOT_ENV_ID || secrets.VITE_COPILOT_ENV_ID }}
-          VITE_COPILOT_SCHEMA: ${{ vars.VITE_COPILOT_SCHEMA || secrets.VITE_COPILOT_SCHEMA }}
-          VITE_ENTRA_CLIENT_ID: ${{ vars.VITE_ENTRA_CLIENT_ID || secrets.VITE_ENTRA_CLIENT_ID }}
-          VITE_ENTRA_AUTHORITY: ${{ vars.VITE_ENTRA_AUTHORITY || secrets.VITE_ENTRA_AUTHORITY }}
+          VITE_COPILOT_BOT_ID: ${{ secrets.VITE_COPILOT_BOT_ID }}
+          VITE_COPILOT_TENANT_ID: ${{ secrets.VITE_COPILOT_TENANT_ID }}
+          VITE_COPILOT_DIRECT_URL: ${{ secrets.VITE_COPILOT_DIRECT_URL }}
+          VITE_COPILOT_ENV_ID: ${{ secrets.VITE_COPILOT_ENV_ID }}
+          VITE_COPILOT_SCHEMA: ${{ secrets.VITE_COPILOT_SCHEMA }}
+          VITE_ENTRA_CLIENT_ID: ${{ secrets.VITE_ENTRA_CLIENT_ID }}
+          VITE_ENTRA_AUTHORITY: ${{ secrets.VITE_ENTRA_AUTHORITY }}
       - name: Deploy to Azure Static Web Apps
         uses: Azure/static-web-apps-deploy@v1
         with:
@@ -53,3 +88,5 @@ jobs:
         with:
           action: 'close'
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
+          app_location: '/'
+          output_location: 'dist'

@@ -47,6 +47,30 @@ npm run dev
 - Create a SWA in Azure, then add the deployment token as a GitHub secret named `AZURE_STATIC_WEB_APPS_API_TOKEN`.
 - The workflow builds the app with `npm ci && npm run build` and deploys `dist`.
 
+### CI/CD variables and secrets
+Add these in GitHub → Settings → Secrets and variables → Actions:
+
+- Variables (preferred) or Secrets (fallback):
+  - `VITE_COPILOT_BOT_ID`
+  - `VITE_COPILOT_TENANT_ID`
+  - `VITE_COPILOT_DIRECT_URL`
+  - `VITE_COPILOT_ENV_ID`
+  - `VITE_COPILOT_SCHEMA`
+  - `VITE_ENTRA_CLIENT_ID`
+  - `VITE_ENTRA_AUTHORITY`
+- Secret:
+  - `AZURE_STATIC_WEB_APPS_API_TOKEN` (from Azure Portal → your SWA → Deployment token)
+
+On push to `main`, the workflow will lint, test, build with the above envs, and deploy to SWA.
+
+### Optional: local SWA emulate
+```
+npm run build
+npm run preview
+# or with SWA CLI if installed
+# swa start http://localhost:4173 --run "npm run preview"
+```
+
 ## Accessibility
 - Semantic landmarks and aria-current for active nav.
 - Focus-visible rings and color contrast ≥ 4.5:1.
