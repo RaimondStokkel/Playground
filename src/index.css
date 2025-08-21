@@ -1,0 +1,17 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --card: #ffffff;
+}
+
+html, body, #root { height: 100%; }
+
+/* focus styles */
+.focus-ring:focus-visible { outline: 3px solid theme('colors.brand.500'); outline-offset: 2px; }
+
+/* simple scrollbars */
+* { scrollbar-width: thin; scrollbar-color: #cbd5e1 transparent; }
+*::-webkit-scrollbar { width: 10px; height: 10px; }
+*::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 6px; }
